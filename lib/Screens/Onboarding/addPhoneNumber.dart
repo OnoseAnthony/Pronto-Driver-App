@@ -64,8 +64,6 @@ class _AddPhoneNumberState extends State<AddPhoneNumber> {
                     if (_formKey.currentState.validate()) {
                       final phoneNumber =
                           phoneDialCode.trim() + _controller.text.trim();
-                      print(
-                          ' Phone number is *********************************************************************************************************************** $phoneNumber');
                       AuthService()
                           .createUserWithPhoneAuth(phoneNumber, context);
                     }

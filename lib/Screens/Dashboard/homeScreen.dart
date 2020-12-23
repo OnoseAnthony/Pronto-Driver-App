@@ -5,6 +5,7 @@ import 'package:fronto_rider/Models/orders.dart';
 import 'package:fronto_rider/Screens/Dashboard/directions.dart';
 import 'package:fronto_rider/Services/firebase/auth.dart';
 import 'package:fronto_rider/Services/firebase/firestore.dart';
+import 'package:fronto_rider/Services/firebase/pushNotificationService.dart';
 import 'package:fronto_rider/SharedWidgets/buttons.dart';
 import 'package:fronto_rider/SharedWidgets/customListTile.dart';
 import 'package:fronto_rider/SharedWidgets/dialogs.dart';
@@ -113,6 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    getNotificationService(context);
     User user = AuthService().getCurrentUser();
     double size = MediaQuery.of(context).size.height;
     return Scaffold(
@@ -142,6 +144,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           scrollDirection: Axis.vertical,
                           itemCount: orderList.length,
                           itemBuilder: (context, index) {
+                            print('item description is ${orderList[index]
+                                .itemDescription}');
+                            print('receiver name is ${orderList[index]
+                                .receiverInfo}');
+                            print('reciever image is ${orderList[index]
+                                .receiverImageUrl}');
+                            print('item image is ${orderList[index].itemUrl}');
+
+
                             return Container(
                               margin: EdgeInsets.only(bottom: 20),
                               child: buildCard(
@@ -202,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   orderList[index].pickUpAddress['stateName'],
                                   orderList[index]
                                       .destinationAddress['stateName'],
-                                  'NEW',
+                                  'PENDING',
                                   orderList[index].pickUpAddress,
                                   orderList[index].destinationAddress),
                             );
@@ -247,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   orderList[index].pickUpAddress['stateName'],
                                   orderList[index]
                                       .destinationAddress['stateName'],
-                                  'NEW',
+                                  'DELIVERED',
                                   orderList[index].pickUpAddress,
                                   orderList[index].destinationAddress),
                             );
@@ -294,6 +305,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+
+  Future<void> getNotificationService(context) async {
+    await NotificationService(context: context).getTokenString();
   }
 
   buildStreamBuilderLoader() {
@@ -448,6 +464,8 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: EdgeInsets.only(left: 20, right: 20, bottom: size * 0.02),
         child: Column(
           children: [
+
+
             buildCustomListTile(
                 buildContainerImage(receiverImage),
                 Flexible(
@@ -478,9 +496,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 null,
                 20,
                 false),
+
+
             SizedBox(
               height: 20,
             ),
+
+
             buildCustomListTile(
                 buildContainerImage(itemImage),
                 Flexible(
@@ -499,7 +521,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 8,
                       ),
                       buildTitlenSubtitleText(
-                          itemDestinationLocation ?? 'hello',
+                          itemDestinationLocation,
                           Colors.grey[500],
                           12,
                           FontWeight.normal,
@@ -511,9 +533,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 null,
                 20,
                 false),
+
+
             SizedBox(
               height: 30,
             ),
+
+
             Column(
               children: [
                 Row(

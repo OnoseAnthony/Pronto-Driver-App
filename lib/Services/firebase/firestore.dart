@@ -7,10 +7,6 @@ import 'package:fronto_rider/Models/users.dart';
 import 'package:fronto_rider/Utils/enums.dart';
 import 'package:provider/provider.dart';
 
-// import 'package:fronto_rider/Services/firebase/auth.dart';
-// import 'package:fronto_rider/Services/firebase/storage.dart';
-// import 'package:fronto_rider/Utils/enums.dart';
-
 class DatabaseService {
   User firebaseUser;
   BuildContext context;
@@ -24,6 +20,16 @@ class DatabaseService {
   //collection reference for orders
   final CollectionReference userOrderCollection =
       FirebaseFirestore.instance.collection('Orders');
+
+  //collection reference for tokens
+  final CollectionReference tokenCollection =
+      FirebaseFirestore.instance.collection('DeviceTokens');
+
+  Future updateTokenStrings(String deviceToken) async {
+    return await tokenCollection.doc(firebaseUser.uid).set({
+      'deviceToken': deviceToken,
+    });
+  }
 
   Future updateUserProfileData(
       bool isDriver, String fName, String lName, String photoUrl) async {
@@ -89,8 +95,8 @@ class DatabaseService {
         timeStamp: doc.data()['date'] ?? 'EMPTY',
         receiverInfo: doc.data()['receiverInfo'],
         receiverPhone: doc.data()['receiverPhone'],
-        itemDescription: doc.data()['receiverInfo'],
-        receiverImageUrl: doc.data()['itemDescription'],
+        itemDescription: doc.data()['itemDescription'],
+        receiverImageUrl: doc.data()['receiverImageUrl'],
         itemUrl: doc.data()['itemUrl'],
         paymentStatus: doc.data()['paymentStatus'] ?? 'EMPTY',
         chargeAmount: doc.data()['chargeAmount'].toString(),

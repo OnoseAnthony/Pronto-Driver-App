@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:fronto_rider/Screens/Onboarding/addPhoneNumber.dart';
 import 'package:fronto_rider/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatelessWidget {
+  bool isFirstTime;
+
+  SplashScreen({this.isFirstTime});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -13,7 +18,9 @@ class SplashScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             InkWell(
-              onTap: () {
+              onTap: () async {
+                if (isFirstTime) await saveFirstTime();
+
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => AddPhoneNumber()));
               },
@@ -41,5 +48,11 @@ class SplashScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+
+  saveFirstTime() async {
+    var sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.setBool('isFirstTime', true);
   }
 }

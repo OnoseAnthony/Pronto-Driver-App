@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fronto_rider/constants.dart';
 
@@ -47,12 +48,19 @@ getIcon(IconData iconData, double size, Color color) {
 buildContainerImage(String imagePath) {
   if (imagePath != null)
     return Container(
-      height: 50,
-      width: 50,
-      decoration: BoxDecoration(
-        image:
-            DecorationImage(image: NetworkImage(imagePath), fit: BoxFit.cover),
-        borderRadius: BorderRadius.circular(100),
+      height: 40,
+      width: 40,
+      decoration:
+          BoxDecoration(shape: BoxShape.circle, color: Colors.grey[400]),
+      child: CachedNetworkImage(
+        height: 40,
+        width: 40,
+        imageUrl: imagePath,
+        placeholder: (context, url) => CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+        ),
+        errorWidget: (context, url, error) => new Icon(Icons.error),
+        fit: BoxFit.cover,
       ),
     );
   else

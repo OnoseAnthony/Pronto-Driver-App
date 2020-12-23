@@ -81,7 +81,9 @@ class AuthService {
           }
         },
         verificationFailed: (FirebaseAuthException exception) {
-          print(exception);
+          Navigator.pop(context);
+          showToast(
+              context, 'Authentication Failed. Try again Later', Colors.red);
         },
         codeSent: (String verificationID, [int forceResendingToken]) {
           //NAVIGATE TO THE SCREEN WHERE THEY CAN ENTER THE CODE SENT

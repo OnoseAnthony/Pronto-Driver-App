@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fronto_rider/Screens/Dashboard/DrawerScreens/emptyScreens.dart';
 import 'package:fronto_rider/Screens/wrapper.dart';
 import 'package:fronto_rider/Services/firebase/auth.dart';
 import 'package:fronto_rider/SharedWidgets/buttons.dart';
@@ -47,23 +48,45 @@ buildDrawer(
               ),
               child: Column(
                 children: [
-                  buildCustomListTile(
-                      getIcon(Icons.live_help_rounded, 22, Colors.black),
-                      buildTitlenSubtitleText('Support', Colors.black, 16,
-                          FontWeight.normal, TextAlign.start, null),
-                      null,
-                      12.0,
-                      false),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => EmptyScreen(
+                                    screenName: 'support',
+                                  )));
+                    },
+                    child: buildCustomListTile(
+                        getIcon(Icons.live_help_rounded, 22, Colors.black),
+                        buildTitlenSubtitleText('Support', Colors.black, 16,
+                            FontWeight.normal, TextAlign.start, null),
+                        null,
+                        12.0,
+                        false),
+                  ),
                   SizedBox(
                     height: 25.0,
                   ),
-                  buildCustomListTile(
-                      getIcon(Icons.info, 22, Colors.black),
-                      buildTitlenSubtitleText('About', Colors.black, 16,
-                          FontWeight.normal, TextAlign.start, null),
-                      null,
-                      12.0,
-                      false),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => EmptyScreen(
+                                    screenName: 'about',
+                                  )));
+                    },
+                    child: buildCustomListTile(
+                        getIcon(Icons.info, 22, Colors.black),
+                        buildTitlenSubtitleText('About', Colors.black, 16,
+                            FontWeight.normal, TextAlign.start, null),
+                        null,
+                        12.0,
+                        false),
+                  ),
                   SizedBox(
                     height: 25.0,
                   ),

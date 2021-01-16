@@ -1,11 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fronto_rider/DataHandler/appData.dart';
-import 'package:fronto_rider/Screens/Dashboard/homeScreen.dart';
+import 'package:fronto_rider/Models/users.dart';
 import 'package:fronto_rider/Screens/Onboarding/addEmailAddress.dart';
 import 'package:fronto_rider/Screens/Onboarding/verifyPhoneNumber.dart';
+import 'package:fronto_rider/Screens/wrapper.dart';
 import 'package:fronto_rider/Services/firebase/firestore.dart';
+import 'package:fronto_rider/Services/firebase/pushNotificationService.dart';
 import 'package:fronto_rider/SharedWidgets/dialogs.dart';
+import 'package:fronto_rider/constants.dart';
 import 'package:provider/provider.dart';
 
 class AuthService {
@@ -32,16 +35,28 @@ class AuthService {
           if (user != null &&
               await DatabaseService(firebaseUser: user, context: context)
                       .checkUser() !=
+                  true &&
+              await DatabaseService(firebaseUser: user, context: context)
+                      .checkCustomer() !=
                   true) {
             //New user so we create an instance
 
             //create an instance of the database service to create user profile and set isDriver to true for the driver
 
             showToast(context, 'Authentication Successful. Please wait',
-                Colors.green);
+                kPrimaryColor, false);
 
             await DatabaseService(firebaseUser: user, context: context)
-                .updateUserProfileData(true, 'New', 'Driver', '');
+                .updateUserProfileData(
+                    'New',
+                    'Rider',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '0.00',
+                    await NotificationService(context: context)
+                        .getTokenString());
 
             //provide the user info to the provider
             Provider.of<AppData>(context, listen: false)
@@ -54,40 +69,61 @@ class AuthService {
               await DatabaseService(firebaseUser: user, context: context)
                       .checkUser() ==
                   true) {
-            //Returning user so we check if the user is a driver: NB for this app the user must be a driver so isDriver must be true
-            if (await DatabaseService(firebaseUser: user, context: context)
-                .checkUserIsDriver()) {
-              //returning user that's a driver, we show toast and then navigate to home screen
-              showToast(context, 'Authentication Successful. Please wait',
-                  Colors.green);
+            CustomUser _customUser = await DatabaseService(
+                    firebaseUser: getCurrentUser(), context: context)
+                .getCustomUserData();
 
-              //provide the user info to the provider
-              Provider.of<AppData>(context, listen: false)
-                  .updateFirebaseUser(user);
+            await DatabaseService(
+                    firebaseUser: getCurrentUser(), context: context)
+                .updateUserProfileData(
+                    _customUser.fName,
+                    _customUser.lName,
+                    _customUser.photoUrl,
+                    _customUser.accountNumber,
+                    _customUser.bankName,
+                    _customUser.bvn,
+                    _customUser.earnings,
+                    await NotificationService(context: context)
+                        .getTokenString());
 
-              //GOTO HOME SCREEN
+            //returning user that's a driver, we show toast and then navigate to home screen
+            showToast(context, 'Authentication Successful. Please wait',
+                kPrimaryColor, false);
+
+            //provide the user info to the provider
+            Provider.of<AppData>(context, listen: false)
+                .updateFirebaseUser(user);
+
+            //check if user has email set up
+            if (getCurrentUser().email == null)
               Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()));
-            } else {
-              Navigator.pop(context);
-              Navigator.pop(context);
+                  MaterialPageRoute(builder: (context) => AddEmailAddress()));
+            else
+              //GOTO HOME SCREEN
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (context) => Wrapper()));
+          } else if (user != null &&
+              await DatabaseService(firebaseUser: user, context: context)
+                      .checkCustomer() ==
+                  true) {
+            Navigator.pop(context);
 
-              //Since isDriver is false we show a dialog a toast to the user and then logout the user
-              showToast(
-                  context, 'Access Denied!!! Only drivers allowed', Colors.red);
+            //Since user is found in the customer collection and we are on the driver app we revoke access
+            showToast(context, 'Access Denied!!! Only drivers allowed',
+                kErrorColor, true);
 
-              await signOut();
-            }
+            await signOut();
           }
         },
         verificationFailed: (FirebaseAuthException exception) {
           Navigator.pop(context);
-          showToast(
-              context, 'Authentication Failed. Try again Later', Colors.red);
+          showToast(context, 'Authentication Failed. Try again Later',
+              kErrorColor, true);
         },
         codeSent: (String verificationID, [int forceResendingToken]) {
+          //pop the dialog before navigating
+          Navigator.pop(context);
           //NAVIGATE TO THE SCREEN WHERE THEY CAN ENTER THE CODE SENT
-
           Navigator.push(
               context,
               MaterialPageRoute(

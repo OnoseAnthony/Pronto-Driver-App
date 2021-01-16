@@ -5,6 +5,7 @@ import 'package:fronto_rider/SharedWidgets/buttons.dart';
 import 'package:fronto_rider/SharedWidgets/dialogs.dart';
 import 'package:fronto_rider/SharedWidgets/text.dart';
 import 'package:fronto_rider/SharedWidgets/textFormField.dart';
+import 'package:fronto_rider/constants.dart';
 
 class AddEmailAddress extends StatefulWidget {
   @override
@@ -38,7 +39,8 @@ class _AddEmailAddressState extends State<AddEmailAddress> {
                 SizedBox(
                   height: 40,
                 ),
-                buildEmailTextField('Email Address', _controller),
+                buildEmailTextField(
+                    'Email Address', _controller, TextInputType.emailAddress),
                 SizedBox(
                   height: 100,
                 ),
@@ -59,13 +61,19 @@ class _AddEmailAddressState extends State<AddEmailAddress> {
 
                         showToast(
                             context,
-                            'Email has been updating successfully!!',
-                            Colors.green);
+                            'Email has been updated successfully!!',
+                            kPrimaryColor,
+                            false);
 
                         Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => HomeScreen()));
+                      } else {
+                        Navigator.pop(context);
+
+                        showToast(context, 'Error occurred! Try again later',
+                            kErrorColor, true);
                       }
                     }
                   },

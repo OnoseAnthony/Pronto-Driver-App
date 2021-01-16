@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fronto_rider/SharedWidgets/buttons.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fronto_rider/constants.dart';
 
 buildDestinationTracker(context, bool isCompleted) {
   return Row(
@@ -12,58 +13,70 @@ buildDestinationTracker(context, bool isCompleted) {
               width: 10,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.blue,
+                color: kPrimaryColor,
               ),
             )
           : Container(
-              height: 25,
+        height: 25,
               width: 22,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.blue,
+                color: kPrimaryColor,
               ),
-              child: getIcon(Icons.message, 10, Colors.white),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: SvgPicture.asset(
+                  'assets/images/truck.svg',
+                  semanticsLabel: 'truck icon',
+                ),
+              ),
             ),
       Container(
         height: 2,
         width: MediaQuery.of(context).size.height * 0.06,
-        color: isCompleted ? Colors.blue : Colors.grey[300],
+        color: isCompleted ? kPrimaryColor : Colors.grey[300],
       ),
       Container(
         height: 10,
         width: 10,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: isCompleted ? Colors.blue : Colors.grey[300],
+          color: isCompleted ? kPrimaryColor : Colors.grey[300],
         ),
       ),
       Container(
         height: 2,
         width: MediaQuery.of(context).size.height * 0.07,
-        color: isCompleted ? Colors.blue : Colors.grey[300],
+        color: isCompleted ? kPrimaryColor : Colors.grey[300],
       ),
       Container(
         height: 10,
         width: 10,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: isCompleted ? Colors.blue : Colors.grey[300],
+          color: isCompleted ? kPrimaryColor : Colors.grey[300],
         ),
       ),
       Container(
         height: 2,
         width: MediaQuery.of(context).size.height * 0.08,
-        color: isCompleted ? Colors.blue : Colors.grey[300],
+        color: isCompleted ? kPrimaryColor : Colors.grey[300],
       ),
       isCompleted
           ? Container(
-              height: 25,
+        height: 25,
               width: 22,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.blue,
+                color: kPrimaryColor,
               ),
-              child: getIcon(Icons.message, 10, Colors.white),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: SvgPicture.asset(
+                  'assets/images/Vector.svg',
+                  semanticsLabel: 'vector icon',
+                ),
+              ),
             )
           : Container(
               height: 10,

@@ -7,17 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:747610550704:android:6d4853391916b65774e675",
+        "mobilesdk_app_id": "1:747610550704:android:ccffb9caafbc72d574e675",
         "android_client_info": {
-          "package_name": "com.apps_pot.fronto"
+          "package_name": "com.apps_pot.pronto"
         }
       },
       "oauth_client": [
         {
-          "client_id": "747610550704-n2f3f1eq60pe5kg3lf1qrqaj54fse7al.apps.googleusercontent.com",
+          "client_id": "747610550704-0qf0jqr2mrrj7rm4ecm4ckdkhs7bu0ka.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.apps_pot.fronto",
+            "package_name": "com.apps_pot.pronto",
             "certificate_hash": "456492c7095c5342cc05f06587ce91bffb588da8"
           }
         },
@@ -44,17 +44,17 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:747610550704:android:75cc6f87bc6359d374e675",
+        "mobilesdk_app_id": "1:747610550704:android:6f294820352701be74e675",
         "android_client_info": {
-          "package_name": "com.appspot.fronto_rider"
+          "package_name": "com.appspot.pronto_rider"
         }
       },
       "oauth_client": [
         {
-          "client_id": "747610550704-gh6uj00mkdhgbp4pcutunj2ijrv932q6.apps.googleusercontent.com",
+          "client_id": "747610550704-3n4r1u05dtvr4qga0nps6606njjbescg.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.appspot.fronto_rider",
+            "package_name": "com.appspot.pronto_rider",
             "certificate_hash": "456492c7095c5342cc05f06587ce91bffb588da8"
           }
         },

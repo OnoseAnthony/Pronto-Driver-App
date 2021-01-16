@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:fronto_rider/DataHandler/appData.dart';
 import 'package:fronto_rider/Models/orders.dart';
+import 'package:fronto_rider/Models/promotion.dart';
 import 'package:fronto_rider/Models/users.dart';
 import 'package:fronto_rider/Utils/enums.dart';
 import 'package:provider/provider.dart';
@@ -15,39 +16,64 @@ class DatabaseService {
 
   //collection reference for user profile
   final CollectionReference userProfileCollection =
-      FirebaseFirestore.instance.collection('CustomUser');
+      FirebaseFirestore.instance.collection('Riders');
+
+  //collection reference for user profile
+  final CollectionReference customerProfileCollection =
+      FirebaseFirestore.instance.collection('Customers');
 
   //collection reference for orders
   final CollectionReference userOrderCollection =
       FirebaseFirestore.instance.collection('Orders');
 
-  //collection reference for tokens
-  final CollectionReference tokenCollection =
-      FirebaseFirestore.instance.collection('DeviceTokens');
+  //collection reference for notifications
+  final CollectionReference notificationCollection =
+      FirebaseFirestore.instance.collection('Notifications');
 
-  Future updateTokenStrings(String deviceToken) async {
-    return await tokenCollection.doc(firebaseUser.uid).set({
-      'deviceToken': deviceToken,
-    });
-  }
+  //collection reference for support
+  final CollectionReference userSupportCollection =
+      FirebaseFirestore.instance.collection('Support');
 
-  Future updateUserProfileData(
-      bool isDriver, String fName, String lName, String photoUrl) async {
+  //collection reference for promotions
+  final CollectionReference promotionCollection =
+      FirebaseFirestore.instance.collection('Promotions');
+
+  Future<bool> updateUserProfileData(
+      String fName,
+      String lName,
+      String photoUrl,
+      String accountNumber,
+      String bankName,
+      String bvn,
+      String earnings,
+      String deviceToken) async {
     CustomUser customUser = CustomUser(
       uid: firebaseUser.uid,
-      isDriver: isDriver,
       fName: fName,
       lName: lName,
       photoUrl: photoUrl,
+      earnings: earnings,
     );
-    Provider.of<AppData>(context, listen: false).updateUserInfo(customUser);
-    return await userProfileCollection.doc(firebaseUser.uid).set({
-      'uid': firebaseUser.uid,
-      'isDriver': isDriver,
-      'fName': fName,
-      'lName': lName,
-      'photoUrl': photoUrl
-    });
+
+    try {
+      await userProfileCollection.doc(firebaseUser.uid).set({
+        'uid': firebaseUser.uid,
+        'fName': fName,
+        'lName': lName,
+        'photoUrl': photoUrl,
+        'phoneNumber': firebaseUser.phoneNumber,
+        'emailAddress': firebaseUser.email,
+        'accountNumber': accountNumber,
+        'bankName': bankName,
+        'bvn': bvn,
+        'earnings': earnings,
+        'deviceToken': deviceToken,
+      });
+      Provider.of<AppData>(context, listen: false).updateUserInfo(customUser);
+      return Future.value(true);
+    } catch (e) {
+      return Future.value(false);
+    }
   }
 
   // Function to check if the uid exists in the firestore custom user collection
@@ -59,12 +85,10 @@ class DatabaseService {
       return Future.value(false);
   }
 
-  // Function to check if the isDriver Field is true of false in the firestore custom user collection
-  Future<bool> checkUserIsDriver() async {
-    DocumentSnapshot document =
-        await userProfileCollection.doc(firebaseUser.uid).get();
-    bool isDriver = document.get('isDriver');
-    if (isDriver == true)
+  // Function to check if the uid exists in the firestore customer collection
+  Future<bool> checkCustomer() async {
+    var document = await customerProfileCollection.doc(firebaseUser.uid).get();
+    if (document.exists)
       return Future.value(true);
     else
       return Future.value(false);
@@ -72,7 +96,18 @@ class DatabaseService {
 
   // method to return custom user data object from snapshot
   CustomUser _customUserDataFromSnapshot(DocumentSnapshot snapshot) {
-    return CustomUser.fromMap(snapshot.data());
+    CustomUser customUser = CustomUser(
+      uid: snapshot.get('uid'),
+      fName: snapshot.get('fName'),
+      lName: snapshot.get('lName'),
+      photoUrl: snapshot.get('photoUrl'),
+      earnings: snapshot.get('earnings'),
+      accountNumber: snapshot.get('accountNumber'),
+      bankName: snapshot.get('bankName'),
+      bvn: snapshot.get('bvn'),
+    );
+    Provider.of<AppData>(context, listen: false).updateUserInfo(customUser);
+    return customUser;
   }
 
   // Function to get custom user data from firestore
@@ -110,6 +145,15 @@ class DatabaseService {
     }).toList();
   }
 
+  // Function to get user orderOrders data from firestore
+  Future<List<Order>> riderDeliveryList() async {
+    QuerySnapshot snapshot = await userOrderCollection
+        .where("driverID", isEqualTo: firebaseUser.uid)
+        .orderBy('date', descending: true)
+        .get();
+    return (userOrderFromSnapshot(snapshot));
+  }
+
   //Stream to get all recently submitted order data from firestore and display them in the admin app
   Stream<List<Order>> get submittedOrderStream {
     return userOrderCollection
@@ -141,8 +185,20 @@ class DatabaseService {
   Future<bool> updateOrderInfo(
     String label,
     String docID,
+    String userID,
+    //userID for the customer who initaited the order. NOTE: This is not the ID of the currently logged in rider!!!!!
+    String orderID,
   ) async {
-    if (label == 'NEW')
+    if (label == 'NEW') {
+      //since order has been accepted we save a notification which will trigger the firebase cloud function for push notification
+      Map driverInfo = {
+        'driverPhone': firebaseUser.phoneNumber,
+        'driverName':
+            '${Provider.of<AppData>(context, listen: false).userInfo.fName} ${Provider.of<AppData>(context, listen: false).userInfo.lName}',
+      };
+
+      String body =
+          'Your package $orderID request has been accepted. Please place a call to the rider to confirm';
       try {
         await userOrderCollection.doc(docID).update({
           'orderStatus': OrderStatus.PENDING.toString(),
@@ -150,12 +206,22 @@ class DatabaseService {
           'driverPhone': firebaseUser.phoneNumber,
           'trackState': 2,
         });
+        await addNotification(docID, userID, 'Pending', body, driverInfo);
 
         return Future.value(true);
       } catch (e) {
         return Future.value(false);
       }
-    else
+    } else if (label == 'PENDING') {
+      //since order has been delivered we update the notification which will trigger the firebase cloud function for push notification
+      Map driverInfo = {
+        'driverPhone': firebaseUser.phoneNumber,
+        'driverName':
+            '${Provider.of<AppData>(context, listen: false).userInfo.fName} ${Provider.of<AppData>(context, listen: false).userInfo.lName}',
+      };
+
+      String body = 'Your package $orderID has been delivered successfully.';
+
       try {
         await userOrderCollection.doc(docID).update({
           'orderStatus': OrderStatus.DELIVERED.toString(),
@@ -163,9 +229,59 @@ class DatabaseService {
           'deliveryTimeStamp': DateTime.now().toString(),
           'deliveryDate': getCreationDate(),
         });
+        await addNotification(docID, userID, 'Delivered', body, driverInfo);
+
         return Future.value(true);
       } catch (e) {
         return Future.value(false);
       }
+    }
+  }
+
+  Future<void> addNotification(String docId, String userId, String title,
+      String body, Map driverInfo) async {
+    try {
+      await notificationCollection.doc(docId).set({
+        'userID': userId,
+        'title': title,
+        'body': body,
+        'driverInfo': driverInfo,
+        "date": getCreationDate(),
+        "timeStamp": DateTime.now().toString(),
+      });
+    } catch (e) {}
+  }
+
+  Future<bool> submitQuery(String title, String description) async {
+    try {
+      await userSupportCollection.add({
+        "userID": firebaseUser.uid,
+        "userPhone": firebaseUser.phoneNumber,
+        "title": title,
+        "description": description,
+      });
+      return Future.value(true);
+    } catch (e) {
+      return Future.value(false);
+    }
+  }
+
+  // method to return promotion from snapshot
+  List<Promotion> promotionFromSnapshot(QuerySnapshot snapshot) {
+    return snapshot.docs.map((doc) {
+      return Promotion(
+        title: doc.data()['title'],
+        body: doc.data()['body'],
+        imageUrl: doc.data()['imageUrl'],
+      );
+    }).toList();
+  }
+
+  //Stream to get all recently submitted promotions from firestore
+  Stream<List<Promotion>> get promotionStream {
+    return promotionCollection
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map(promotionFromSnapshot);
   }
 }

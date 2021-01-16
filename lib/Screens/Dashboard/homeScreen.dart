@@ -1,11 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fronto_rider/Models/orders.dart';
 import 'package:fronto_rider/Screens/Dashboard/directions.dart';
 import 'package:fronto_rider/Services/firebase/auth.dart';
 import 'package:fronto_rider/Services/firebase/firestore.dart';
-import 'package:fronto_rider/Services/firebase/pushNotificationService.dart';
 import 'package:fronto_rider/SharedWidgets/buttons.dart';
 import 'package:fronto_rider/SharedWidgets/customListTile.dart';
 import 'package:fronto_rider/SharedWidgets/dialogs.dart';
@@ -103,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    getCustomUser();
     pageController = PageController(initialPage: 0);
   }
 
@@ -114,13 +113,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    getNotificationService(context);
     User user = AuthService().getCurrentUser();
     double size = MediaQuery.of(context).size.height;
     return Scaffold(
+      backgroundColor: kBackgroundColor,
       key: _scaffoldKey,
       drawer: buildDrawer(context),
       body: Stack(
+        fit: StackFit.expand,
         children: [
           Container(
             height: size,
@@ -144,19 +144,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           scrollDirection: Axis.vertical,
                           itemCount: orderList.length,
                           itemBuilder: (context, index) {
-                            print('item description is ${orderList[index]
-                                .itemDescription}');
-                            print('receiver name is ${orderList[index]
-                                .receiverInfo}');
-                            print('reciever image is ${orderList[index]
-                                .receiverImageUrl}');
-                            print('item image is ${orderList[index].itemUrl}');
-
-
                             return Container(
                               margin: EdgeInsets.only(bottom: 20),
                               child: buildCard(
+                                  orderList[index].userID,
                                   orderList[index].docID,
+                                  orderList[index].orderID,
                                   size,
                                   orderList[index].receiverImageUrl,
                                   orderList[index].receiverInfo,
@@ -201,7 +194,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             return Container(
                               margin: EdgeInsets.only(bottom: 20),
                               child: buildCard(
+                                  orderList[index].userID,
                                   orderList[index].docID,
+                                  orderList[index].orderID,
                                   size,
                                   orderList[index].receiverImageUrl,
                                   orderList[index].receiverInfo,
@@ -246,7 +241,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             return Container(
                               margin: EdgeInsets.only(bottom: 20),
                               child: buildCard(
+                                  orderList[index].userID,
                                   orderList[index].docID,
+                                  orderList[index].orderID,
                                   size,
                                   orderList[index].receiverImageUrl,
                                   orderList[index].receiverInfo,
@@ -280,12 +277,13 @@ class _HomeScreenState extends State<HomeScreen> {
             right: 0,
             top: 0,
             child: Material(
+              color: kWhiteColor,
               elevation: 4,
-              shadowColor: Colors.grey[200],
+              shadowColor: kWhiteColor,
               child: Padding(
                 padding: EdgeInsets.only(
-                    left: 40,
-                    right: 40,
+                    left: 35,
+                    right: 35,
                     top: size * 0.12,
                     bottom: size * 0.015),
                 child: buildTabBarContainer(context),
@@ -307,140 +305,144 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
-  Future<void> getNotificationService(context) async {
-    await NotificationService(context: context).getTokenString();
-  }
-
-  buildStreamBuilderLoader() {
-    return Container(
-      child: Center(
-        child: Container(
-          height: 80,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: Colors.blue,
-          ),
-          child: Padding(
-            padding:
-                EdgeInsets.only(top: 8.0, bottom: 8.0, left: 40, right: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                SpinKitWanderingCubes(
-                  color: Colors.white,
-                  size: 30.0,
-                ),
-                SizedBox(
-                  width: 30,
-                ),
-                buildTitlenSubtitleText('please wait a moment...', Colors.white,
-                    14, FontWeight.bold, TextAlign.center, null),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+  getCustomUser() async {
+    await DatabaseService(
+            firebaseUser: AuthService().getCurrentUser(), context: context)
+        .getCustomUserData();
+    setState(() {});
   }
 
   buildStreamBuilderNullContainer(String label) {
     return Container(
         child: Center(
-            child: Container(
-      height: 80,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        color: Colors.blue,
-      ),
-      child: Padding(
-        padding:
-            const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 40, right: 20),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Icon(
-              Icons.info,
-              color: Colors.white,
-              size: 30,
+            child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Flexible(
+          flex: 2,
+          child: Container(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                buildTitlenSubtitleText(
+                    label == 'NEW'
+                        ? 'No package'
+                        : label == 'PENDING'
+                            ? 'No package accepted'
+                            : label == 'DELIVERED'
+                                ? 'No package delivered'
+                                : 'ERROR!!!',
+                    Colors.black,
+                    20,
+                    FontWeight.bold,
+                    TextAlign.center,
+                    null),
+                SizedBox(
+                  height: 15,
+                ),
+                buildTitlenSubtitleText(
+                    label == 'NEW'
+                        ? 'There are no new packages to accept'
+                        : label == 'PENDING'
+                            ? 'You do not have any accepted packages to deliver'
+                            : 'You have not delivered any packages yet',
+                    Color(0xff787878),
+                    13,
+                    FontWeight.normal,
+                    TextAlign.center,
+                    null),
+                buildTitlenSubtitleText(
+                    label != 'NEW'
+                        ? 'Tap the button to accept a package for delivery'
+                        : 'New packages will be listed here, once they are available',
+                    Color(0xff787878),
+                    13,
+                    FontWeight.normal,
+                    TextAlign.center,
+                    null),
+                SizedBox(
+                  height: 30,
+                ),
+                label != 'NEW'
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: InkWell(
+                          onTap: () {
+                            if (label == 'PENDING')
+                              setState(() {
+                                updateDecoration(OrderStatus.SUBMITTED);
+                                pageController.animateToPage(0,
+                                    duration: Duration(milliseconds: 254),
+                                    curve: Curves.fastOutSlowIn);
+                              });
+                            else
+                              setState(() {
+                                updateDecoration(OrderStatus.PENDING);
+                                pageController.animateToPage(1,
+                                    duration: Duration(milliseconds: 254),
+                                    curve: Curves.fastOutSlowIn);
+                              });
+                          },
+                          child: buildSubmitButton('ACCEPT ITEM', 25.0, false),
+                        ),
+                      )
+                    : SizedBox(),
+              ],
             ),
-            SizedBox(
-              width: 20,
-            ),
-            buildTitlenSubtitleText(
-                label == 'NEW'
-                    ? 'No new deliveries yet...'
-                    : label == 'PENDING'
-                        ? 'No accepted packages yet...'
-                        : label == 'DELIVERED'
-                            ? 'No completed deliveries yet...'
-                            : 'ERROR!!!',
-                Colors.white,
-                14,
-                FontWeight.bold,
-                TextAlign.center,
-                null),
-          ],
+          ),
         ),
-      ),
+      ],
     )));
   }
 
   buildTabBarContainer(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                updateDecoration(OrderStatus.SUBMITTED);
-                pageController.animateToPage(0,
-                    duration: Duration(milliseconds: 254),
-                    curve: Curves.fastOutSlowIn);
-              });
-            },
-            child: createTabBarElement(
-                'NEW', newContainerColor, newBorderColor, newTextColor, 70),
-          ),
-          SizedBox(
-            width: 20,
-          ),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                updateDecoration(OrderStatus.PENDING);
-                pageController.animateToPage(1,
-                    duration: Duration(milliseconds: 254),
-                    curve: Curves.fastOutSlowIn);
-              });
-            },
-            child: createTabBarElement('PENDING', pendingContainerColor,
-                pendingBorderColor, pendingTextColor, 80),
-          ),
-          SizedBox(
-            width: 20,
-          ),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                updateDecoration(OrderStatus.DELIVERED);
-                pageController.animateToPage(2,
-                    duration: Duration(milliseconds: 254),
-                    curve: Curves.fastOutSlowIn);
-              });
-            },
-            child: createTabBarElement('DELIVERED', deliveredContainerColor,
-                deliveredBorderColor, deliveredTextColor, 90),
-          ),
-        ],
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              updateDecoration(OrderStatus.SUBMITTED);
+              pageController.animateToPage(0,
+                  duration: Duration(milliseconds: 254),
+                  curve: Curves.fastOutSlowIn);
+            });
+          },
+          child: createTabBarElement(
+              'NEW', newContainerColor, newBorderColor, newTextColor, 70),
+        ),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              updateDecoration(OrderStatus.PENDING);
+              pageController.animateToPage(1,
+                  duration: Duration(milliseconds: 254),
+                  curve: Curves.fastOutSlowIn);
+            });
+          },
+          child: createTabBarElement('PENDING', pendingContainerColor,
+              pendingBorderColor, pendingTextColor, 80),
+        ),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              updateDecoration(OrderStatus.DELIVERED);
+              pageController.animateToPage(2,
+                  duration: Duration(milliseconds: 254),
+                  curve: Curves.fastOutSlowIn);
+            });
+          },
+          child: createTabBarElement('DELIVERED', deliveredContainerColor,
+              deliveredBorderColor, deliveredTextColor, 90),
+        ),
+      ],
     );
   }
 
   buildCard(
+      String userID,
       String docID,
+      String orderID,
       double size,
       String receiverImage,
       String receiverName,
@@ -458,28 +460,32 @@ class _HomeScreenState extends State<HomeScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(5),
       ),
-      clipBehavior: Clip.antiAliasWithSaveLayer,
-      elevation: 8,
+      elevation: 3,
       child: Padding(
-        padding: EdgeInsets.only(left: 20, right: 20, bottom: size * 0.02),
+        padding: EdgeInsets.only(
+            left: 20, right: 20, bottom: size * 0.02, top: size * 0.03),
         child: Column(
           children: [
-
-
             buildCustomListTile(
                 buildContainerImage(receiverImage),
                 Flexible(
                   flex: 2,
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        height: 30,
-                      ),
                       buildTitlenSubtitleText(receiverName, Colors.black, 16,
                           FontWeight.normal, TextAlign.start, null),
+                      SizedBox(
+                        height: 8,
+                      ),
+                      buildTitlenSubtitleText(
+                          destinationAddress["placeName"],
+                          Colors.grey[500],
+                          12,
+                          FontWeight.normal,
+                          TextAlign.start,
+                          TextOverflow.visible),
                       SizedBox(
                         height: 8,
                       ),
@@ -499,7 +505,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
             SizedBox(
-              height: 20,
+              height: 32,
             ),
 
 
@@ -508,20 +514,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 Flexible(
                   flex: 2,
                   child: Column(
-                    mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        height: 20,
-                      ),
                       buildTitlenSubtitleText(itemDescription, Colors.black, 16,
                           FontWeight.normal, TextAlign.start, null),
                       SizedBox(
                         height: 8,
                       ),
                       buildTitlenSubtitleText(
-                          itemDestinationLocation,
+                          pickUpAddress["placeName"],
                           Colors.grey[500],
                           12,
                           FontWeight.normal,
@@ -584,7 +586,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           isScrollControlled: true,
                           isDismissible: true,
                           builder: (context) => Container(
-                                height: size * 0.80,
+                            height: MediaQuery.of(context).size.height,
                                 child: DirectionScreen(
                                   pickUpLat: pickUpAddress['latitude'],
                                   pickUpLong: pickUpAddress['longitude'],
@@ -595,6 +597,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                       destinationAddress['longitude'],
                                   destinationPlaceName:
                                       destinationAddress['placeName'],
+                                  docID: docID,
+                                  orderID: orderID,
+                                  userID: userID,
+                                  receiverName: receiverName,
+                                  receiverPhone: receiverPhone,
+                                  receiverImage: receiverImage,
+                                  itemName: itemDescription,
+                                  itemImage: itemImage,
                                 ),
                               ));
                     },
@@ -622,37 +632,39 @@ class _HomeScreenState extends State<HomeScreen> {
                         bool isUpdated = await DatabaseService(
                                 firebaseUser: AuthService().getCurrentUser(),
                                 context: context)
-                            .updateOrderInfo('NEW', docID);
+                            .updateOrderInfo('NEW', docID, userID, orderID);
 
                         if (isUpdated) {
                           Navigator.pop(context);
-
                           showToast(
                               context,
                               'Order request accepted successfully',
-                              Colors.blue);
+                              kPrimaryColor,
+                              false);
                         } else {
                           Navigator.pop(context);
-
-                          showToast(context, 'Error occurred!!', Colors.red);
+                          showToast(
+                              context, 'Error occurred!!', kErrorColor, true);
                         }
                       } else if (label == 'PENDING') {
                         bool isUpdated = await DatabaseService(
                                 firebaseUser: AuthService().getCurrentUser(),
                                 context: context)
-                            .updateOrderInfo('PENDING', docID);
+                            .updateOrderInfo('PENDING', docID, userID, orderID);
 
                         if (isUpdated) {
                           Navigator.pop(context);
 
                           showToast(
                               context,
-                              'Delivery confirmation processed successfully',
-                              Colors.blue);
+                              'Delivery confirmation completed successfully',
+                              kPrimaryColor,
+                              false);
                         } else {
                           Navigator.pop(context);
 
-                          showToast(context, 'Error occurred!!', Colors.red);
+                          showToast(
+                              context, 'Error occurred!!', kErrorColor, true);
                         }
                       }
                     },

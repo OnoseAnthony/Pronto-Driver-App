@@ -2,9 +2,8 @@ import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:fronto_rider/Screens/Dashboard/drawerScreens/promotion.dart';
 import 'package:fronto_rider/Screens/Dashboard/homeScreen.dart';
-import 'package:fronto_rider/Services/firebase/auth.dart';
-import 'package:fronto_rider/Services/firebase/firestore.dart';
 
 class NotificationService {
   BuildContext context;
@@ -21,29 +20,46 @@ class NotificationService {
 
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
-        print("onMessage: $message");
+        navigatorSerialiser(message);
       },
       onLaunch: (Map<String, dynamic> message) async {
-        getSubmittedStreamBuilder();
+        navigatorSerialiser(message);
       },
       onResume: (Map<String, dynamic> message) async {
-        getSubmittedStreamBuilder();
+        navigatorSerialiser(message);
       },
     );
   }
 
-  getSubmittedStreamBuilder() {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => HomeScreen()));
+  navigatorSerialiser(Map<String, dynamic> message) {
+    final notificationData = message['data'];
+    final category = notificationData['category'];
+    final title = notificationData['title'];
+    final body = notificationData['body'];
+    final imageUrl = notificationData['imageUrl'];
+
+    if (category != null && category == 'promotion') {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        enableDrag: false,
+        isDismissible: false,
+        builder: (context) => Container(
+            height: MediaQuery.of(context).size.height,
+            child: PromotionDetailView(
+              title: title,
+              body: body,
+              imageUrl: imageUrl,
+            )),
+      );
+    } else if (category == null) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    }
   }
 
-  Future getTokenString() async {
+  Future<String> getTokenString() async {
     String getTokenString = await _firebaseMessaging.getToken();
-
-    if (getTokenString != null) {
-      await DatabaseService(
-              firebaseUser: AuthService().getCurrentUser(), context: context)
-          .updateTokenStrings(getTokenString);
-    }
+    return getTokenString;
   }
 }

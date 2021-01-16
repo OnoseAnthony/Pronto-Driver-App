@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fronto_rider/constants.dart';
 
 buildPhoneNumberTextField(
     String hintText, TextEditingController controller, Widget prefixIcon) {
@@ -24,7 +25,7 @@ buildPhoneNumberTextField(
           borderSide: BorderSide(color: Colors.black),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.blue),
+          borderSide: BorderSide(color: kPrimaryColor),
         ),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.black),
@@ -34,10 +35,14 @@ buildPhoneNumberTextField(
   );
 }
 
-buildEmailTextField(String hintText, TextEditingController controller) {
+buildEmailTextField(String hintText, TextEditingController controller,
+    TextInputType textInputType) {
   return Container(
     child: TextFormField(
-      keyboardType: TextInputType.emailAddress,
+      minLines: textInputType == TextInputType.multiline ? 6 : null,
+      // any number you need (It works as the rows for the textarea)
+      maxLines: null,
+      keyboardType: textInputType,
       onChanged: (val) {},
       controller: controller,
       validator: (val) => val.isEmpty ? 'Field Cannot be empty' : null,
@@ -51,7 +56,7 @@ buildEmailTextField(String hintText, TextEditingController controller) {
           borderSide: BorderSide(color: Colors.black),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.blue),
+          borderSide: BorderSide(color: kPrimaryColor),
         ),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.black),
@@ -66,12 +71,12 @@ buildVerifyPhoneNumberField(TextEditingController controller, context) {
     width: 35,
     height: 35,
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: kWhiteColor,
       borderRadius: BorderRadius.circular(3),
       boxShadow: [
         BoxShadow(
-          color: Colors.black54,
-          blurRadius: 5.0,
+          color: Colors.black26,
+          blurRadius: 0.25,
         )
       ],
     ),
@@ -89,6 +94,25 @@ buildVerifyPhoneNumberField(TextEditingController controller, context) {
         hintStyle: TextStyle(color: Colors.grey[400], fontSize: 12),
         border: InputBorder.none,
       ),
+    ),
+  );
+}
+
+buildTextField(String hintText, TextEditingController controller) {
+  return Container(
+    child: TextFormField(
+      keyboardType: TextInputType.text,
+      onChanged: (val) {},
+      controller: controller,
+      validator: (val) => val.isEmpty ? 'Field Cannot be empty' : null,
+      inputFormatters: [],
+      decoration: InputDecoration(
+          isDense: true,
+          hintText: hintText,
+          hintStyle: TextStyle(
+            fontSize: 14,
+          ),
+          contentPadding: EdgeInsets.only(top: 15.0, bottom: 5.0)),
     ),
   );
 }

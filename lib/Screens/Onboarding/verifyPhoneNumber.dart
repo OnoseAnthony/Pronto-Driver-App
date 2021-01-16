@@ -1,14 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fronto_rider/DataHandler/appData.dart';
-import 'package:fronto_rider/Screens/Dashboard/homeScreen.dart';
+import 'package:fronto_rider/Models/users.dart';
 import 'package:fronto_rider/Screens/Onboarding/addEmailAddress.dart';
+import 'package:fronto_rider/Screens/wrapper.dart';
 import 'package:fronto_rider/Services/firebase/auth.dart';
 import 'package:fronto_rider/Services/firebase/firestore.dart';
+import 'package:fronto_rider/Services/firebase/pushNotificationService.dart';
 import 'package:fronto_rider/SharedWidgets/buttons.dart';
 import 'package:fronto_rider/SharedWidgets/dialogs.dart';
 import 'package:fronto_rider/SharedWidgets/text.dart';
 import 'package:fronto_rider/SharedWidgets/textFormField.dart';
+import 'package:fronto_rider/constants.dart';
 import 'package:provider/provider.dart';
 
 class VerifyPhone extends StatefulWidget {
@@ -81,7 +84,7 @@ class _VerifyPhoneState extends State<VerifyPhone> {
                   },
                   child: buildTitlenSubtitleText(
                       'Edit phone number',
-                      Colors.blue,
+                      Color(0xFF27AE60),
                       13,
                       FontWeight.normal,
                       TextAlign.start,
@@ -120,7 +123,7 @@ class _VerifyPhoneState extends State<VerifyPhone> {
                           _controller3.text.trim() +
                           _controller4.text.trim() +
                           _controller5.text.trim();
-                      print(codeString);
+
                       AuthCredential authCredential =
                           PhoneAuthProvider.credential(
                               verificationId: widget.verificationId,
@@ -135,10 +138,11 @@ class _VerifyPhoneState extends State<VerifyPhone> {
                           await DatabaseService(
                                       firebaseUser: user, context: context)
                                   .checkUser() !=
+                              true &&
+                          await DatabaseService(
+                                      firebaseUser: user, context: context)
+                                  .checkCustomer() !=
                               true) {
-                        print(
-                            'New user *************************************************************************************** found');
-
                         //New user so we create an instance
 
                         //create an instance of the database service to create user profile and set isDriver to false for the customer
@@ -146,11 +150,20 @@ class _VerifyPhoneState extends State<VerifyPhone> {
                         showToast(
                             context,
                             'Authentication Successful. Please wait',
-                            Colors.green);
+                            kPrimaryColor,
+                            false);
 
                         await DatabaseService(firebaseUser: user)
-                            .updateUserProfileData(true, 'New', 'Driver', '');
-                        print(user.uid);
+                            .updateUserProfileData(
+                                'New',
+                                'Rider',
+                                '',
+                                '',
+                                '',
+                                '',
+                                '0.00',
+                                await NotificationService(context: context)
+                                    .getTokenString());
 
                         //provide the user info to the provider
                         Provider.of<AppData>(context, listen: false)
@@ -166,45 +179,63 @@ class _VerifyPhoneState extends State<VerifyPhone> {
                                       firebaseUser: user, context: context)
                                   .checkUser() ==
                               true) {
-                        print(
-                            'Returning user *************************************************************************************** found');
+                        CustomUser _customUser = await DatabaseService(
+                                firebaseUser: AuthService().getCurrentUser(),
+                                context: context)
+                            .getCustomUserData();
 
-                        //Returning user so we check if the user is a driver: NB for this app the user must be a driver so isDriver must be true
-                        if (await DatabaseService(
-                                firebaseUser: user, context: context)
-                            .checkUserIsDriver()) {
-                          print(
-                              'Returning user *************************************************************************************** found ***********************************and is a driver.. Logging in and sending to the home page ');
+                        await DatabaseService(
+                                firebaseUser: AuthService().getCurrentUser(),
+                                context: context)
+                            .updateUserProfileData(
+                                _customUser.fName,
+                                _customUser.lName,
+                                _customUser.photoUrl,
+                                _customUser.accountNumber,
+                                _customUser.bankName,
+                                _customUser.bvn,
+                                _customUser.earnings,
+                                await NotificationService(context: context)
+                                    .getTokenString());
 
-                          //returning user that's a driver, we show toast and then navigate to home screen
-                          showToast(
+                        //returning user that's a driver, we show toast and then navigate to home screen
+                        showToast(
+                            context,
+                            'Authentication Successful. Please wait',
+                            kPrimaryColor,
+                            false);
+
+                        //provide the user info to the provider
+                        Provider.of<AppData>(context, listen: false)
+                            .updateFirebaseUser(user);
+
+                        //check if user has email set up
+                        if (AuthService().getCurrentUser().email == null)
+                          Navigator.pushReplacement(
                               context,
-                              'Authentication Successful. Please wait',
-                              Colors.green);
-
-                          //provide the user info to the provider
-                          Provider.of<AppData>(context, listen: false)
-                              .updateFirebaseUser(user);
-
+                              MaterialPageRoute(
+                                  builder: (context) => AddEmailAddress()));
+                        else
                           //GOTO HOME SCREEN
                           Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => HomeScreen()));
-                        } else {
-                          print(
-                              'Returning user *************************************************************************************** found ***********************************and is a customer.. Logging out  and sending back to the login page ');
+                                  builder: (context) => Wrapper()));
+                      } else if (user != null &&
+                          await DatabaseService(
+                                      firebaseUser: user, context: context)
+                                  .checkCustomer() ==
+                              true) {
+                        Navigator.pop(context);
+                        Navigator.pop(context);
 
-                          Navigator.pop(context);
-                          Navigator.pop(context);
-
-                          //Since isDriver is true we show  a toast to the user and then logout the user
-                          showToast(
-                              context,
-                              'Access Denied!!! Only drivers allowed',
-                              Colors.red);
-                          await AuthService().signOut();
-                        }
+                        //Since user is found in the customer collection and we are on the driver app we revoke access
+                        showToast(
+                            context,
+                            'Access Denied!!! Only drivers allowed',
+                            kErrorColor,
+                            true);
+                        await AuthService().signOut();
                       }
                     }
                   },

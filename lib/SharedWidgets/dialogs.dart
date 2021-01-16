@@ -3,6 +3,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fronto_rider/SharedWidgets/buttons.dart';
 import 'package:fronto_rider/SharedWidgets/text.dart';
+import 'package:fronto_rider/constants.dart';
 
 class LoaderWidget extends StatelessWidget {
   @override
@@ -21,7 +22,7 @@ Dialog NavigationLoader(BuildContext context) {
     child: Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(5),
-        color: Colors.blue,
+        color: kPrimaryColor,
       ),
       height: 80.0,
       child: Padding(
@@ -34,7 +35,7 @@ Dialog NavigationLoader(BuildContext context) {
             SizedBox(
               width: 30,
             ),
-            buildTitlenSubtitleText('please wait a moment...', Colors.white, 14,
+            buildTitlenSubtitleText('please wait a moment...', kWhiteColor, 14,
                 FontWeight.bold, TextAlign.center, null),
           ],
         ),
@@ -43,7 +44,7 @@ Dialog NavigationLoader(BuildContext context) {
   );
 }
 
-showToast(context, String msg, Color color) {
+showToast(context, String msg, Color color, bool isError) {
   FToast fToast = FToast();
   fToast.init(context);
 
@@ -51,12 +52,12 @@ showToast(context, String msg, Color color) {
     padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(25.0),
-      color: color != null ? color : Colors.blue,
+      color: color != null ? color : kPrimaryColor,
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        getIcon(Icons.check, 20, Colors.white),
+        getIcon(isError ? Icons.cancel : Icons.check, 20, kWhiteColor),
         SizedBox(
           width: 12.0,
         ),

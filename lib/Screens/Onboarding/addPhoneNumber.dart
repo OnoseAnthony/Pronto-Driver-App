@@ -1,11 +1,14 @@
 import 'package:country_list_pick/country_list_pick.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:fronto_rider/Screens/Dashboard/DrawerScreens/terms.dart';
 import 'package:fronto_rider/Services/firebase/auth.dart';
 import 'package:fronto_rider/SharedWidgets/buttons.dart';
 import 'package:fronto_rider/SharedWidgets/dialogs.dart';
 import 'package:fronto_rider/SharedWidgets/text.dart';
 import 'package:fronto_rider/SharedWidgets/textFormField.dart';
 import 'package:fronto_rider/constants.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AddPhoneNumber extends StatefulWidget {
   @override
@@ -16,6 +19,7 @@ class _AddPhoneNumberState extends State<AddPhoneNumber> {
   final _formKey = GlobalKey<FormState>();
   var phoneDialCode = '+234';
   TextEditingController _controller = TextEditingController();
+  bool value = false;
 
   @override
   void dispose() {
@@ -55,18 +59,83 @@ class _AddPhoneNumberState extends State<AddPhoneNumber> {
                 SizedBox(
                   height: 100,
                 ),
+                Row(
+                  children: [
+                    Checkbox(
+                      activeColor: kPrimaryColor,
+                      checkColor: kWhiteColor,
+                      value: value,
+                      onChanged: (bool) {
+                        setState(() {
+                          value = bool;
+                        });
+                      },
+                    ),
+                    Flexible(
+                      child: RichText(
+                        text: TextSpan(
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: 'I have read and accepted all ',
+                              style: GoogleFonts.lato(
+                                textStyle: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[500],
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                            TextSpan(
+                                text: 'Pronto\'s terms and conditions',
+                                style: GoogleFonts.lato(
+                                  textStyle: TextStyle(
+                                    decoration: TextDecoration.underline,
+                                    fontSize: 12,
+                                    color: Colors.grey[500],
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      isDismissible: false,
+                                      enableDrag: false,
+                                      builder: (context) => Container(
+                                        height:
+                                            MediaQuery.of(context).size.height,
+                                        child: TermsScreen(),
+                                      ),
+                                    );
+                                  }),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 30,
+                ),
                 InkWell(
                   onTap: () {
-                    showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) => NavigationLoader(context));
-                    if (_formKey.currentState.validate()) {
+                    if (_formKey.currentState.validate() && value) {
+                      showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => NavigationLoader(context));
+
                       final phoneNumber =
                           phoneDialCode.trim() + _controller.text.trim();
                       AuthService()
                           .createUserWithPhoneAuth(phoneNumber, context);
-                    }
+                    } else if (!value)
+                      showToast(
+                          context,
+                          'please accept the terms and conditions',
+                          kErrorColor,
+                          true);
                   },
                   child: buildSubmitButton('NEXT', 25.0, false),
                 ),

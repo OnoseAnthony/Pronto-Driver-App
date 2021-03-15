@@ -292,12 +292,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Positioned(
             top: size * 0.07,
-            left: 10,
+            left: 20,
             child: InkWell(
               onTap: () {
                 _scaffoldKey.currentState.openDrawer();
               },
-              child: getIcon(Icons.menu, 25, Colors.black),
+              child: getIcon(Icons.menu, 26, Colors.black),
             ),
           ),
         ],

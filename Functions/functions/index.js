@@ -133,8 +133,13 @@ exports.sendPromotionToCustomers = functions.firestore.document('Promotions/{pro
 
 
     const customerDeviceTokenSnapshot = await admin.firestore().collection('Customers').get();
+    const riderDeviceTokenSnapshot = await admin.firestore().collection('Riders').get();
 
     for (var token of customerDeviceTokenSnapshot.docs){
+        customerDeviceTokens.push(token.data().deviceToken)
+    }
+
+    for (var token of riderDeviceTokenSnapshot.docs){
         customerDeviceTokens.push(token.data().deviceToken)
     }
 

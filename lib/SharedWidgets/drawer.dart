@@ -7,7 +7,7 @@ import 'package:fronto_rider/Screens/Dashboard/drawerScreens/about.dart';
 import 'package:fronto_rider/Screens/Dashboard/drawerScreens/editProfile.dart';
 import 'package:fronto_rider/Screens/Dashboard/drawerScreens/promotion.dart';
 import 'package:fronto_rider/Screens/Dashboard/drawerScreens/support.dart';
-import 'package:fronto_rider/Screens/wrapper.dart';
+import 'package:fronto_rider/Screens/Onboarding/getStarted.dart';
 import 'package:fronto_rider/Services/firebase/auth.dart';
 import 'package:fronto_rider/SharedWidgets/buttons.dart';
 import 'package:fronto_rider/SharedWidgets/customListTile.dart';
@@ -34,7 +34,7 @@ buildDrawer(
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => EditProfile()));
+                        MaterialPageRoute(builder: (context) => EditProfile(isFromAuth: false,)));
                   },
                   child: buildCustomListTile(
                       Provider.of<AppData>(context, listen: false).userInfo !=
@@ -177,7 +177,7 @@ buildDrawer(
                       if (isLoggedOut)
                         Navigator.pushAndRemoveUntil(
                             context,
-                            MaterialPageRoute(builder: (context) => Wrapper()),
+                            MaterialPageRoute(builder: (context) => GetStarted()),
                             (route) => false);
                       else {
                         Navigator.pop(context);

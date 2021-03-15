@@ -7,6 +7,7 @@ class CustomUser {
   final String accountNumber;
   final String bankName;
   final String bvn;
+  final bool isVerified;
 
   CustomUser(
       {this.uid,
@@ -16,7 +17,8 @@ class CustomUser {
       this.photoUrl,
       this.bankName,
       this.accountNumber,
-      this.bvn});
+      this.bvn,
+      this.isVerified});
 
   CustomUser.fromMap(Map map)
       : this.uid = map['uid'],
@@ -26,5 +28,6 @@ class CustomUser {
         this.photoUrl = map['photoUrl'],
         this.accountNumber = map['accountNumber'],
         this.bankName = map['bankName'],
-        this.bvn = map['bvn'];
+        this.bvn = map['bvn'],
+        this.isVerified = map['isVerified'];
 }

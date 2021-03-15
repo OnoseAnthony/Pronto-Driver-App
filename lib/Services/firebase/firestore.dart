@@ -53,6 +53,7 @@ class DatabaseService {
       lName: lName,
       photoUrl: photoUrl,
       earnings: earnings,
+      isVerified: false,
     );
 
     try {
@@ -67,6 +68,7 @@ class DatabaseService {
         'bankName': bankName,
         'bvn': bvn,
         'earnings': earnings,
+        'isVerified': false,
         'deviceToken': deviceToken,
       });
       Provider.of<AppData>(context, listen: false).updateUserInfo(customUser);
@@ -105,6 +107,7 @@ class DatabaseService {
       accountNumber: snapshot.get('accountNumber'),
       bankName: snapshot.get('bankName'),
       bvn: snapshot.get('bvn'),
+      isVerified: snapshot.get('isVerified'),
     );
     Provider.of<AppData>(context, listen: false).updateUserInfo(customUser);
     return customUser;

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fronto_rider/Screens/wrapper.dart';
+import 'package:fronto_rider/Screens/Onboarding/addPhoneNumber.dart';
+import 'package:fronto_rider/Models/users.dart';
 import 'package:fronto_rider/Services/firebase/pushNotificationService.dart';
+import 'package:fronto_rider/Services/firebase/auth.dart';
+import 'package:fronto_rider/Services/firebase/firestore.dart';
 import 'package:fronto_rider/SharedWidgets/buttons.dart';
 import 'package:fronto_rider/SharedWidgets/text.dart';
 import 'package:fronto_rider/constants.dart';
@@ -61,11 +65,22 @@ class _GetStartedState extends State<GetStarted> {
                         height: 60,
                       ),
                       InkWell(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => Wrapper()));
+                        onTap: () async{
+                          final user = AuthService().getCurrentUser();
+                          if(user == null){
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => AddPhoneNumber()));
+                          }else{
+                            CustomUser customUser = await DatabaseService(
+                                firebaseUser: AuthService().getCurrentUser(), context: context)
+                                .getCustomUserData();
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => Wrapper(customUser: customUser,)));
+                          }
                         },
                         child: Padding(
                           padding: EdgeInsets.only(left: 40, right: 40),
